@@ -8,5 +8,6 @@
 #include "imaging.h"
 
 int read_ppm_image(char *fname, Image *imageOut);
+int write_ppm_p6_image(char *fname, Image *imageRef);
 
 #endif //CS430_PROJECT_2_BASIC_RAYCASTER_PPM_H
