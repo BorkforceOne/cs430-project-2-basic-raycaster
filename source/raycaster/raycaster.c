@@ -42,7 +42,7 @@ int raycast(JSONArray *JSONSceneArrayRef, int width, int height) {
 
 	Primitive *primitiveHit;
 
-	p[Z] = 0;
+	p[Z] = 0.5;
 	for (int i=0; i<M; i++) {
 		p[Y] = c[Y] - h/2.0 + pixel_height * (i + 0.5);
 		for (int j=0; j<N; j++) {
@@ -55,7 +55,7 @@ int raycast(JSONArray *JSONSceneArrayRef, int width, int height) {
 		}
 	}
 
-	if (write_ppm_p6_image("out.ppm", &outputImage) != 1) {
+	if (write_ppm_p6_image("out.ppm", &outputImage) != 0) {
 		return 1;
 	}
 
@@ -113,14 +113,36 @@ int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit) {
 			v3_subtract(Ro, planeRef->position, tmpVector);
 			v3_dot(planeRef->normal, tmpVector, &numerator);
 
-			t_possible = -(numerator/denominator);
-			if (t_possible < t) {
+			t_possible = numerator / denominator;
+			if (t_possible < t && t_possible > 0) {
 				t = t_possible;
 				*primitiveHit = primitiveTmpRef;
 			}
 		}
 		else if (primitiveTmpRef->type == SPHERE_T) {
+			sphereRef = &primitiveTmpRef->data.sphere;
+			double B = 2 * (Rd[X] * (Ro[X] - sphereRef->position[X]) + Rd[Y]*(Ro[Y] - sphereRef->position[Y]) + Rd[Z]*(Ro[Z] - sphereRef->position[Z]));
+			double C = pow(Ro[X] - sphereRef->position[X], 2) + pow(Ro[Y] - sphereRef->position[Y], 2) + pow(Ro[Z] - sphereRef->position[Z], 2) - pow(sphereRef->radius, 2);
 
+			double discriminant = (pow(B, 2) - 4*C);
+			if (discriminant < 0) {
+				// No intersection
+				continue;
+			}
+
+			t_possible = -B + sqrt((pow(B, 2) - 4*C))/2;
+
+			if (t_possible < t && t_possible > 0) {
+				t = t_possible;
+				*primitiveHit = primitiveTmpRef;
+			}
+
+			t_possible = -B - sqrt((pow(B, 2) - 4*C))/2;
+
+			if (t_possible < t && t_possible > 0) {
+				t = t_possible;
+				*primitiveHit = primitiveTmpRef;
+			}
 		}
 	}
 
@@ -243,6 +265,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 				}
 
 				SceneRef->primitives[j]->data.sphere.radius = JSONValueTempRef->data.dataNumber;
+				j++;
 			}
 			else if (strcmp(JSONValueTempRef->data.dataString, "plane") == 0) {
 				// We found a plane
@@ -284,6 +307,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 				}
 
 				JSONArray_to_V3(JSONValueTempRef->data.dataArray, SceneRef->primitives[j]->data.plane.normal);
+				j++;
 			}
 			else {
 				fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
