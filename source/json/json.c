@@ -64,4 +64,5 @@ int JSONArray_get_value(int index, JSONArray* JSONArrayRef, JSONValue** JSONValu
 		return 1;
 
 	*JSONValueOutRef = JSONArrayRef->values[index];
+	return 0;
 }
