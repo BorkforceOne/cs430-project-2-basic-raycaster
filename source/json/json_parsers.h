@@ -1,0 +1,10 @@
+//
+// Created by Brandon Garling on 9/21/2016.
+//
+
+#ifndef CS430_PROJECT_2_BASIC_RAYCASTER_PARSERS_H
+#define CS430_PROJECT_2_BASIC_RAYCASTER_PARSERS_H
+
+char* parse_string(FILE *fh);
+
+#endif //CS430_PROJECT_2_BASIC_RAYCASTER_PARSERS_H
