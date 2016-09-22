@@ -13,6 +13,8 @@
       <sourceFolder url="file://$MODULE_DIR$/source/json/json_parsers.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/helpers.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/raycaster/raycaster.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/raycaster/raycaster.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/raycaster/3dmath.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/imaging/imaging.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/imaging/ppm.h" isTestSource="false" />
