@@ -47,9 +47,7 @@ typedef struct JSONArray {
 } JSONArray;
 
 int read_json(char* fname, JSONValue *JSONRootRef);
-int read_JSONValue(FILE *fp, JSONValue *JSONValueRef);
-int read_JSONObject(FILE *fp, JSONObject *JSONObjectRef);
-int read_JSONElement(FILE *fp, JSONElement *JSONElementRef);
-int read_JSONArray(FILE *fp, JSONArray *JSONArrayRef);
+int JSONObject_get_value(char* key, JSONObject* JSONObjectRef, JSONValue** JSONValueOutRef);
+int JSONArray_get_value(int index, JSONArray* JSONArrayRef, JSONValue** JSONValueOutRef);
 
 #endif //CS430_PROJECT_2_BASIC_RAYCASTER_JSON_H
