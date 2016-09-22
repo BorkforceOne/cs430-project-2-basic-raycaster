@@ -47,10 +47,6 @@ char* parse_string(FILE *fh) {
 	// Free our working buffer
 	free(buffer);
 
-	// Print a message to the console that we read a string
-	if (LOG_LEVEL > 1)
-		printf("Info: Found string: \"%s\"\n", string);
-
 	// Return the newly built string
 	return string;
 }
