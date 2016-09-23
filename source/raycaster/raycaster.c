@@ -12,42 +12,39 @@
 #include "../imaging/imaging.h"
 #include "../imaging/ppm.h"
 
-int raycast(JSONArray *JSONSceneArrayRef, uint32_t width, uint32_t height) {
+int raycast(JSONArray *JSONSceneArrayRef, uint32_t imageWidth, uint32_t imageHeight) {
 	Image outputImage;
 	Scene scene;
 	if (create_scene(JSONSceneArrayRef, &scene) != 0){
 		return 1;
 	}
 
-	outputImage.width = width;
-	outputImage.height = height;
-	outputImage.pixmapRef = malloc(sizeof(RGBApixel) * width * height);
+	outputImage.width = imageWidth;
+	outputImage.height = imageHeight;
+	outputImage.pixmapRef = malloc(sizeof(RGBApixel) * imageWidth * imageHeight);
 
-	int M = width;
-	int N = height;
-	double h = scene.camera.height;
-	double w = scene.camera.width;
+	double cameraHeight = scene.camera.height;
+	double cameraWidth = scene.camera.width;
 
-	V3 c = {0, 0, 1};
-    V3 cameraPos = {0, 0, 1};
+	V3 viewPlanePos = {0, 0, 1};
+    V3 cameraPos = {0, 0, 0};
 
-	double pixel_height = h/M;
-	double pixel_width = w/N;
+	double pixelHeight = cameraHeight/imageWidth;
+	double pixelWidth = cameraWidth/imageHeight;
 
-	V3 rayDirection; // The direction of our ray
-    V3 point;
+	V3 rayDirection = {0, 0, 0}; // The direction of our ray
+    V3 point = {0, 0, 0}; // The point on the viewPlane that we intersect
 
 	Primitive *primitiveHit;
 
-    point[Z] = 1;
-	for (int i=0; i<M; i++) {
-        point[Y] = -(c[Y] - h/2.0 + pixel_height * (i + 0.5));
-		for (int j=0; j<N; j++) {
-            point[X] = c[X] - w/2.0 + pixel_width * (j + 0.5);
-			v3_normalize(point, rayDirection); // normalization, ray direction
-			primitiveHit = NULL;
-			shoot(cameraPos, rayDirection, &scene, &primitiveHit); // intersection is x
-			shade(primitiveHit, &outputImage.pixmapRef[i*N + j]);
+    point.Z = viewPlanePos.Z;
+	for (int i=0; i<imageWidth; i++) {
+        point.Y = -(viewPlanePos.Y - cameraHeight/2.0 + pixelHeight * (i + 0.5));
+		for (int j=0; j<imageHeight; j++) {
+            point.X = viewPlanePos.X - cameraWidth/2.0 + pixelWidth * (j + 0.5);
+			v3_normalize(&point, &rayDirection); // normalization, find the ray direction
+			shoot(&cameraPos, &rayDirection, &scene, &primitiveHit);
+			shade(primitiveHit, &outputImage.pixmapRef[i*imageHeight + j]);
 		}
 	}
 
@@ -61,16 +58,16 @@ int raycast(JSONArray *JSONSceneArrayRef, uint32_t width, uint32_t height) {
 int shade(Primitive* primitiveHitRef, RGBApixel *pixel) {
 	if (primitiveHitRef != NULL) {
 		if (primitiveHitRef->type == SPHERE_T) {
-			pixel->r = (uint8_t)(primitiveHitRef->data.sphere.color[0]*255);
-			pixel->g = (uint8_t)(primitiveHitRef->data.sphere.color[1]*255);
-			pixel->b = (uint8_t)(primitiveHitRef->data.sphere.color[2]*255);
+			pixel->r = (uint8_t)(primitiveHitRef->data.sphere.color.X*255);
+			pixel->g = (uint8_t)(primitiveHitRef->data.sphere.color.Y*255);
+			pixel->b = (uint8_t)(primitiveHitRef->data.sphere.color.Z*255);
 			pixel->a = 255;
 			return 0;
 		}
 		if (primitiveHitRef->type == PLANE_T) {
-			pixel->r = (uint8_t)(primitiveHitRef->data.plane.color[0]*255);
-			pixel->g = (uint8_t)(primitiveHitRef->data.plane.color[1]*255);
-			pixel->b = (uint8_t)(primitiveHitRef->data.plane.color[2]*255);
+			pixel->r = (uint8_t)(primitiveHitRef->data.plane.color.X*255);
+			pixel->g = (uint8_t)(primitiveHitRef->data.plane.color.Y*255);
+			pixel->b = (uint8_t)(primitiveHitRef->data.plane.color.Z*255);
 			pixel->a = 255;
 			return 0;
 		}
@@ -82,44 +79,46 @@ int shade(Primitive* primitiveHitRef, RGBApixel *pixel) {
 	return 0;
 }
 
-int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit) {
-	Primitive *primitiveTmpRef;
+int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit) {
+	Primitive *primitiveRef;
 	Plane *planeRef;
 	Sphere *sphereRef;
+	// Reset the hit primitive
 	*primitiveHit = NULL;
 	int i = 0;
+	// Our current closest t value
 	double t = INFINITY;
-	double t_possible = INFINITY;
-	double tmpDouble;
-	V3 tmpVector;
+	// A possible t value replacement
+	double t_possible;
 
 	for (i = 0; i < sceneRef->primitivesLength; i++) {
-		primitiveTmpRef = sceneRef->primitives[i];
+		primitiveRef = sceneRef->primitives[i];
 
-		if (primitiveTmpRef->type == PLANE_T) {
-			planeRef = &primitiveTmpRef->data.plane;
+		if (primitiveRef->type == PLANE_T) {
+			planeRef = &primitiveRef->data.plane;
+			double Vd;
+			double V0;
+			V3 vectorTemp;
+			v3_subtract(Ro, &planeRef->position, &vectorTemp);
+			v3_dot(&planeRef->normal, &vectorTemp, &Vd);
 
-			double numerator, denominator;
-			v3_dot(planeRef->normal, Rd, &denominator);
-
-			if (denominator == 0) {
+			if (Vd == 0) {
 				// No intersection!
 				continue;
 			}
 
-			v3_subtract(Ro, planeRef->position, tmpVector);
-			v3_dot(planeRef->normal, tmpVector, &numerator);
+			v3_dot(&planeRef->normal, Rd, &V0);
 
-			t_possible = -(numerator / denominator);
+			t_possible = -(Vd / V0);
 			if (t_possible < t && t_possible > 0) {
 				t = t_possible;
-				*primitiveHit = primitiveTmpRef;
+				*primitiveHit = primitiveRef;
 			}
 		}
-		else if (primitiveTmpRef->type == SPHERE_T) {
-			sphereRef = &primitiveTmpRef->data.sphere;
-			double B = 2 * (Rd[X] * (Ro[X] - sphereRef->position[X]) + Rd[Y]*(Ro[Y] - sphereRef->position[Y]) + Rd[Z]*(Ro[Z] - sphereRef->position[Z]));
-			double C = pow(Ro[X] - sphereRef->position[X], 2) + pow(Ro[Y] - sphereRef->position[Y], 2) + pow(Ro[Z] - sphereRef->position[Z], 2) - pow(sphereRef->radius, 2);
+		else if (primitiveRef->type == SPHERE_T) {
+			sphereRef = &primitiveRef->data.sphere;
+			double B = 2 * (Rd->X * (Ro->X - sphereRef->position.X) + Rd->Y*(Ro->Y - sphereRef->position.Y) + Rd->Z*(Ro->Z - sphereRef->position.Z));
+			double C = pow(Ro->X - sphereRef->position.X, 2) + pow(Ro->Y - sphereRef->position.Y, 2) + pow(Ro->Z - sphereRef->position.Z, 2) - pow(sphereRef->radius, 2);
 
 			double discriminant = (pow(B, 2) - 4*C);
 			if (discriminant < 0) {
@@ -127,18 +126,18 @@ int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit) {
 				continue;
 			}
 
-			t_possible = -B + sqrt((pow(B, 2) - 4*C))/2;
+			t_possible = (-B + sqrt(discriminant))/2;
 
 			if (t_possible < t && t_possible > 0) {
 				t = t_possible;
-				*primitiveHit = primitiveTmpRef;
+				*primitiveHit = primitiveRef;
 			}
 
-			t_possible = -B - sqrt((pow(B, 2) - 4*C))/2;
+			t_possible = (-B - sqrt(discriminant))/2;
 
 			if (t_possible < t && t_possible > 0) {
 				t = t_possible;
-				*primitiveHit = primitiveTmpRef;
+				*primitiveHit = primitiveRef;
 			}
 		}
 	}
@@ -146,7 +145,7 @@ int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit) {
 	return 0;
 }
 
-int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 vector) {
+int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 *vector) {
 	JSONValue *JSONValueTempRef;
 
 	if (JSONArrayRef->length != 3){
@@ -166,7 +165,12 @@ int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 vector) {
 			return 1;
 		}
 
-		vector[i] = JSONValueTempRef->data.dataNumber;
+		if (i == 0)
+			vector->X = JSONValueTempRef->data.dataNumber;
+		else if (i == 1)
+			vector->Y = JSONValueTempRef->data.dataNumber;
+		else if (i == 2)
+			vector->Z = JSONValueTempRef->data.dataNumber;
 	}
 
     return 0;
@@ -239,7 +243,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, SceneRef->primitives[j]->data.sphere.color);
+				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.color);
 
 				// Read the position
 				if (JSONObject_get_value("position", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -251,7 +255,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, SceneRef->primitives[j]->data.sphere.position);
+				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.position);
 
 				// Read the radius
 				if (JSONObject_get_value("radius", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -281,7 +285,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, SceneRef->primitives[j]->data.plane.color);
+				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.color);
 
 				// Read the position
 				if (JSONObject_get_value("position", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -293,7 +297,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, SceneRef->primitives[j]->data.plane.position);
+				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.position);
 
 				// Read the position
 				if (JSONObject_get_value("normal", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -305,7 +309,7 @@ int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, SceneRef->primitives[j]->data.plane.normal);
+				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.normal);
 				j++;
 			}
 			else {

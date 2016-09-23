@@ -53,10 +53,10 @@ typedef struct Scene {
 typedef struct RGBApixel RGBApixel;
 typedef struct JSONArray JSONArray;
 
-int raycast(JSONArray *JSONSceneArrayRef, uint32_t width, uint32_t height);
+int raycast(JSONArray *JSONSceneArrayRef, uint32_t imageWidth, uint32_t imageHeight);
 int shade(Primitive* primitiveHitRef, RGBApixel *pixel);
-int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit);
-int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 vector);
+int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit);
+int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 *vector);
 int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef);
 
 #endif //CS430_PROJECT_2_BASIC_RAYCASTER_RAYTRACER_H
