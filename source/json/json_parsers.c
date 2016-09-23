@@ -52,7 +52,7 @@ int read_JSONValue(FILE *fp, JSONValue *JSONValueRef){
 
 		return 0;
 	}
-	else if (isdigit(c)) {
+	else if (isdigit(c) || c == '-') {
 		// An number
 		JSONValueRef->type = NUMBER_T;
 
