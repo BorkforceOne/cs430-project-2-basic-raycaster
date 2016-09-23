@@ -7,24 +7,12 @@
 #include "imaging.h"
 
 /**
- * Reads a ppm (P6|P3) image into a Image struct
- * @param fname - The ppm (P6|P3) image filename to load
- * @param imageRef - A pointer to the struct to read the ppm file image data into
+ * Write the specified image to a file using PPM P6 format
+ * @param imageRef - The image to write
+ * @param fname - The output filename
  * @return 0 if success, otherwise a failure occurred
  */
-int read_ppm_image(char *fname, Image *imageRef) {
-	FILE *fp = fopen(fname, "r");
-	if (fp) {
-		// Read the magic number
-	} else {
-		fprintf(stderr, "Error: File '%s' could not be opened for reading\n", fname);
-		return 1;
-	}
-
-	return 0;
-}
-
-int write_ppm_p6_image(char *fname, Image *imageRef) {
+int save_ppm_p6_image(Image *imageRef, char *fname) {
 	FILE* fp = fopen(fname, "w");
 	int i;
 	int j;
