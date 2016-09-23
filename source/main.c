@@ -1,14 +1,65 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "json/json.h"
 #include "raycaster/raycaster.h"
 #include "imaging/ppm.h"
 #include "raycaster/raycaster_helpers.h"
+#include "constants.h"
 
-int main() {
-	char *inputFname = "resources/input.json";
-	char *outputFname = "out.ppm";
-	int imageWidth = 1000;
-	int imageHeight = 1000;
+/**
+ * Determine if the input string is a number, this does not currently support
+ * floating point numbers.
+ * @param string - The string to check
+ * @return 1 if it is a number, 0 if it is not a number
+ */
+int isnumber(char *string) {
+	int i = 0;
+	do {
+		if (!isdigit(string[i]) && !(string[i] == '-' && i == 0)) {
+			return FALSE;
+		}
+		i++;
+	} while (string[i] != '\0');
+	return TRUE;
+}
+
+/**
+ * Show a simple help message about the usage of this program
+ */
+void show_help() {
+	printf("Usage: raycast <render_width> <render_height> <input_scene> <output_file>\n");
+	printf("\t render_width: The width of the image to render\n");
+	printf("\t render_height: The height of the image to render\n");
+	printf("\t input_scene: The input scene file in a supported JSON format\n");
+	printf("\t output_file: The location to write the output PPM P6 image\n");
+	printf("\n");
+	printf("\t Example: raycast 1920 1080 scene.json out.ppm\n");
+}
+
+/**
+ * The main enchilada, do all the things!
+ */
+int main (int argc, char *argv[]) {
+	if (argc != 5) {
+		show_help();
+		return 0;
+	}
+
+	int imageWidth = atoi(argv[1]);
+	int imageHeight = atoi(argv[2]);
+	char *inputFname = argv[3];
+	char *outputFname = argv[4];
+
+	if (!isnumber(argv[1]) || imageHeight <= 0) {
+		show_help();
+		return 0;
+	}
+
+	if (!isnumber(argv[2]) || imageWidth <= 0) {
+		show_help();
+		return 0;
+	}
 
 	// Read the input JSON file
 	JSONValue JSONRoot;
