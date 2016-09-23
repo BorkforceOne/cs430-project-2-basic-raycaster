@@ -1,14 +1,14 @@
 //
 // Created by Brandon Garling on 9/21/2016.
 //
-#include "../constants.h"
+#include "constants.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include "json_parsers.h"
 #include "json.h"
-#include "../helpers.h"
+#include "helpers.h"
 #include "json_helpers.h"
 
 

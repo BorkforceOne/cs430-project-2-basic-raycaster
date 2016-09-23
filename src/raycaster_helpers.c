@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../json/json.h"
+#include "json.h"
 #include "3dmath.h"
 #include "raycaster.h"
 

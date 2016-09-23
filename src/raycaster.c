@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "3dmath.h"
 #include "raycaster.h"
-#include "../imaging/imaging.h"
+#include "imaging.h"
 
 /**
  * Allocates space in the imageRef specified for an image of the selected imageWidth and imageHeight.

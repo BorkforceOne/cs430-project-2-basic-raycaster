@@ -3,5 +3,5 @@ project(cs430_project_2_basic_raycaster)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES source/main.c source/imaging/ppm.c source/constants.h source/imaging/ppm.h source/imaging/imaging.h source/json/json.c source/json/json_parsers.c source/json/json_parsers.h source/json/json_helpers.c source/json/json_helpers.h source/helpers.h source/helpers.c source/imaging/ppm_helpers.h source/imaging/ppm_helpers.c source/json/json.h source/raycaster/raycaster.h source/raycaster/raycaster.c source/raycaster/3dmath.h source/raycaster/raycaster_helpers.c source/raycaster/raycaster_helpers.h)
+set(SOURCE_FILES src/main.c src/ppm.c src/constants.h src/ppm.h src/imaging.h src/json.c src/json_parsers.c src/json_parsers.h src/json_helpers.c src/json_helpers.h src/helpers.h src/helpers.c src/ppm_helpers.h src/ppm_helpers.c src/json.h src/raycaster.h src/raycaster.c src/3dmath.h src/raycaster_helpers.c src/raycaster_helpers.h)
 add_executable(cs430_project_2_basic_raycaster ${SOURCE_FILES})

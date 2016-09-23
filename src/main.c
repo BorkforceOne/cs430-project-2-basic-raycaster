@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "json/json.h"
-#include "raycaster/raycaster.h"
-#include "imaging/ppm.h"
-#include "raycaster/raycaster_helpers.h"
+#include "json.h"
+#include "raycaster.h"
+#include "ppm.h"
+#include "raycaster_helpers.h"
 #include "constants.h"
 
 /**
@@ -13,7 +13,7 @@
  * @param string - The string to check
  * @return 1 if it is a number, 0 if it is not a number
  */
-int isnumber(char *string) {
+int isinteger(char *string) {
 	int i = 0;
 	do {
 		if (!isdigit(string[i]) && !(string[i] == '-' && i == 0)) {
@@ -51,12 +51,12 @@ int main (int argc, char *argv[]) {
 	char *inputFname = argv[3];
 	char *outputFname = argv[4];
 
-	if (!isnumber(argv[1]) || imageHeight <= 0) {
+	if (!isinteger(argv[1]) || imageHeight <= 0) {
 		show_help();
 		return 0;
 	}
 
-	if (!isnumber(argv[2]) || imageWidth <= 0) {
+	if (!isinteger(argv[2]) || imageWidth <= 0) {
 		show_help();
 		return 0;
 	}
