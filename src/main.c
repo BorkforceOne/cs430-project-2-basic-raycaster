@@ -84,6 +84,6 @@ int main (int argc, char *argv[]) {
 	if (save_ppm_p6_image(&image, outputFname) != 0)
 		return 1;
 
-	printf("[INFO] Finished!");
+	printf("[INFO] Finished!\n");
 	return 0;
 }
