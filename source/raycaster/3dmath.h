@@ -14,31 +14,31 @@
 typedef double V3[3];
 
 static inline void v3_add(V3 a,V3 b, V3 c) {
-	c[0] = a[0] + b[0];
-	c[1] = a[1] + b[1];
-	c[2] = a[2] + b[2];
+	c[X] = a[X] + b[X];
+	c[Y] = a[Y] + b[Y];
+	c[Z] = a[Z] + b[Z];
 }
 
 static inline void v3_subtract(V3 a,V3 b, V3 c) {
-	c[0] = a[0] - b[0];
-	c[1] = a[1] - b[1];
-	c[2] = a[2] - b[2];
+	c[X] = a[X] - b[X];
+	c[Y] = a[Y] - b[Y];
+	c[Z] = a[Z] - b[Z];
 }
 
 static inline void v3_scale(V3 a, double s, V3 c) {
-	c[0] = a[0] * s;
-	c[1] = a[1] * s;
-	c[2] = a[2] * s;
+	c[X] = a[X] * s;
+	c[Y] = a[Y] * s;
+	c[Z] = a[Z] * s;
 }
 
 static inline void v3_dot(V3 a, V3 b, double *c) {
-	*c = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+	*c = a[X]*b[X] + a[Y]*b[Y] + a[Z]*b[Z];
 }
 
 static inline void v3_cross(V3 a, V3 b, V3 c) {
-	c[0] = a[1]*b[2] - a[2]*b[1];
-	c[1] = a[2]*b[0] - a[0]*b[2];
-	c[2] = a[0]*b[1] - a[1]*b[0];
+	c[X] = a[Y]*b[Z] - a[Z]*b[Y];
+	c[Y] = a[Z]*b[X] - a[X]*b[Z];
+	c[Z] = a[X]*b[Y] - a[Y]*b[X];
 }
 
 static inline void v3_magnitude(V3 a, double *b) {
