@@ -14,11 +14,11 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CC) -o $@ $^ $(LDFLAGS) -I$(HEADERDIR) -I$(SOURCEDIR)
 
-$(OBJDIR)/%.o: $(SOURCEDIR)/%.c
+$(OBJDIR)/%.o: $(SOURCEDIR)/%.c $(OBJDIR)
 	$(CC) $(CCFLAGS) -c $< -o $@ -I$(HEADERDIR) -I$(SOURCEDIR)
 
 $(OBJDIR):
 	mkdir $(OBJDIR)
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -rf $(OBJDIR) $(TARGET)
