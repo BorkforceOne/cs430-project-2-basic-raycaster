@@ -53,7 +53,7 @@ typedef struct Scene {
 typedef struct RGBApixel RGBApixel;
 typedef struct JSONArray JSONArray;
 
-int raycast(JSONArray *JSONSceneArrayRef, int width, int height);
+int raycast(JSONArray *JSONSceneArrayRef, uint32_t width, uint32_t height);
 int shade(Primitive* primitiveHitRef, RGBApixel *pixel);
 int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit);
 int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 vector);

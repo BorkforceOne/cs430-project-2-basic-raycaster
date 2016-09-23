@@ -12,7 +12,7 @@
 #include "../imaging/imaging.h"
 #include "../imaging/ppm.h"
 
-int raycast(JSONArray *JSONSceneArrayRef, int width, int height) {
+int raycast(JSONArray *JSONSceneArrayRef, uint32_t width, uint32_t height) {
 	Image outputImage;
 	Scene scene;
 	if (create_scene(JSONSceneArrayRef, &scene) != 0){
@@ -28,29 +28,25 @@ int raycast(JSONArray *JSONSceneArrayRef, int width, int height) {
 	double h = scene.camera.height;
 	double w = scene.camera.width;
 
-	V3 c;
-	c[X] = w/2.0;
-	c[Y] = h/2.0;
+	V3 c = {0, 0, 1};
+    V3 cameraPos = {0, 0, 1};
 
 	double pixel_height = h/M;
 	double pixel_width = w/N;
 
-	V3 p;
-	V3 Rd; // The direction of our ray
-	V3 Ro; // The origin of our ray
-	V3 Rh; // The point that we hit
+	V3 rayDirection; // The direction of our ray
+    V3 point;
 
 	Primitive *primitiveHit;
 
-	p[Z] = 0.5;
+    point[Z] = 1;
 	for (int i=0; i<M; i++) {
-		p[Y] = c[Y] - h/2.0 + pixel_height * (i + 0.5);
+        point[Y] = -(c[Y] - h/2.0 + pixel_height * (i + 0.5));
 		for (int j=0; j<N; j++) {
-			p[X] = c[X] - w/2.0 + pixel_width * (j + 0.5);
-			v3_normalize(p, Rd); // normalization, ray direction
-			v3_copy(p, Ro); // origin of the ray
+            point[X] = c[X] - w/2.0 + pixel_width * (j + 0.5);
+			v3_normalize(point, rayDirection); // normalization, ray direction
 			primitiveHit = NULL;
-			shoot(Ro, Rd, &scene, &primitiveHit); // intersection is x
+			shoot(cameraPos, rayDirection, &scene, &primitiveHit); // intersection is x
 			shade(primitiveHit, &outputImage.pixmapRef[i*N + j]);
 		}
 	}
@@ -99,6 +95,7 @@ int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit) {
 
 	for (i = 0; i < sceneRef->primitivesLength; i++) {
 		primitiveTmpRef = sceneRef->primitives[i];
+
 		if (primitiveTmpRef->type == PLANE_T) {
 			planeRef = &primitiveTmpRef->data.plane;
 
@@ -113,7 +110,7 @@ int shoot(V3 Ro, V3 Rd, Scene *sceneRef, Primitive **primitiveHit) {
 			v3_subtract(Ro, planeRef->position, tmpVector);
 			v3_dot(planeRef->normal, tmpVector, &numerator);
 
-			t_possible = numerator / denominator;
+			t_possible = -(numerator / denominator);
 			if (t_possible < t && t_possible > 0) {
 				t = t_possible;
 				*primitiveHit = primitiveTmpRef;
@@ -171,6 +168,8 @@ int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 vector) {
 
 		vector[i] = JSONValueTempRef->data.dataNumber;
 	}
+
+    return 0;
 }
 
 int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
