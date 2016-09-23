@@ -3,23 +3,25 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/constants.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/main.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/helpers.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json_helpers.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json_helpers.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json_parsers.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json_parsers.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/json/json.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/main.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/helpers.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/constants.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/helpers.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/raycaster/raycaster.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/raycaster/raycaster.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/raycaster/3dmath.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/raycaster/raycaster_helpers.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/raycaster/raycaster_helpers.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/imaging/imaging.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/imaging/ppm.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/imaging/ppm_helpers.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/imaging/ppm.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/imaging/ppm.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/imaging/ppm_helpers.c" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
