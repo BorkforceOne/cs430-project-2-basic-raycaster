@@ -4,27 +4,27 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include "3dmath.h"
 #include "raycaster.h"
-#include "../json/json_parsers.h"
-#include "../json/json.h"
 #include "../imaging/imaging.h"
-#include "../imaging/ppm.h"
 
-int raycast(JSONArray *JSONSceneArrayRef, uint32_t imageWidth, uint32_t imageHeight) {
-	Image outputImage;
-	Scene scene;
-	if (create_scene(JSONSceneArrayRef, &scene) != 0){
-		return 1;
-	}
+/**
+ * Allocates space in the imageRef specified for an image of the selected imageWidth and imageHeight.
+ * Then raycasts a specified scene into the specified image.
+ * @param sceneRef - The input scene to render
+ * @param imageRef - The output image to write to
+ * @param imageWidth - The height of the output image
+ * @param imageHeight - The width of the output image
+ * @return 0 if success, otherwise a failure occurred
+ */
+int raycast(Scene *sceneRef, Image* imageRef, int imageWidth, int imageHeight) {
 
-	outputImage.width = imageWidth;
-	outputImage.height = imageHeight;
-	outputImage.pixmapRef = malloc(sizeof(RGBApixel) * imageWidth * imageHeight);
+	imageRef->width = (uint32_t) imageWidth;
+	imageRef->height= (uint32_t) imageHeight;
+	imageRef->pixmapRef = malloc(sizeof(RGBApixel) * imageWidth * imageHeight);
 
-	double cameraHeight = scene.camera.height;
-	double cameraWidth = scene.camera.width;
+	double cameraHeight = sceneRef->camera.height;
+	double cameraWidth = sceneRef->camera.width;
 
 	V3 viewPlanePos = {0, 0, 1};
     V3 cameraPos = {0, 0, 0};
@@ -43,18 +43,21 @@ int raycast(JSONArray *JSONSceneArrayRef, uint32_t imageWidth, uint32_t imageHei
 		for (int j=0; j<imageHeight; j++) {
             point.X = viewPlanePos.X - cameraWidth/2.0 + pixelWidth * (j + 0.5);
 			v3_normalize(&point, &rayDirection); // normalization, find the ray direction
-			shoot(&cameraPos, &rayDirection, &scene, &primitiveHit);
-			shade(primitiveHit, &outputImage.pixmapRef[i*imageHeight + j]);
+			shoot(&cameraPos, &rayDirection, sceneRef, &primitiveHit);
+			shade(primitiveHit, &imageRef->pixmapRef[i*imageHeight + j]);
 		}
 	}
 
-	if (write_ppm_p6_image("out.ppm", &outputImage) != 0) {
-		return 1;
-	}
 
 	return 0;
 }
 
+/**
+ * Shades a specific pixel based on the primitive provides
+ * @param primitiveHitRef - The primitive that was hit during a call to the shoot function
+ * @param pixel  - The pixel to color
+ * @return 0 if success, otherwise a failure occurred
+ */
 int shade(Primitive* primitiveHitRef, RGBApixel *pixel) {
 	if (primitiveHitRef != NULL) {
 		if (primitiveHitRef->type == SPHERE_T) {
@@ -79,7 +82,16 @@ int shade(Primitive* primitiveHitRef, RGBApixel *pixel) {
 	return 0;
 }
 
-int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit) {
+/**
+ * Does the actual raytracing and sets the primitiveHit to a pointer to the primitive that was hit,
+ * if any, when shooting the ray.
+ * @param rayOriginRef - The origin of the ray
+ * @param rayDirectionRef - The direction of the ray
+ * @param sceneRef - A reference to the current scene
+ * @param primitiveHit - A reference to a refrence of a primitive to set to the hit reference if a hit occurs
+ * @return
+ */
+int shoot(V3 *rayOriginRef, V3 *rayDirectionRef, Scene *sceneRef, Primitive **primitiveHit) {
 	Primitive *primitiveRef;
 	Plane *planeRef;
 	Sphere *sphereRef;
@@ -99,7 +111,7 @@ int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit) {
 			double Vd;
 			double V0;
 			V3 vectorTemp;
-			v3_subtract(Ro, &planeRef->position, &vectorTemp);
+			v3_subtract(rayOriginRef, &planeRef->position, &vectorTemp);
 			v3_dot(&planeRef->normal, &vectorTemp, &Vd);
 
 			if (Vd == 0) {
@@ -107,7 +119,7 @@ int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit) {
 				continue;
 			}
 
-			v3_dot(&planeRef->normal, Rd, &V0);
+			v3_dot(&planeRef->normal, rayDirectionRef, &V0);
 
 			t_possible = -(Vd / V0);
 			if (t_possible < t && t_possible > 0) {
@@ -117,8 +129,8 @@ int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit) {
 		}
 		else if (primitiveRef->type == SPHERE_T) {
 			sphereRef = &primitiveRef->data.sphere;
-			double B = 2 * (Rd->X * (Ro->X - sphereRef->position.X) + Rd->Y*(Ro->Y - sphereRef->position.Y) + Rd->Z*(Ro->Z - sphereRef->position.Z));
-			double C = pow(Ro->X - sphereRef->position.X, 2) + pow(Ro->Y - sphereRef->position.Y, 2) + pow(Ro->Z - sphereRef->position.Z, 2) - pow(sphereRef->radius, 2);
+			double B = 2 * (rayDirectionRef->X * (rayOriginRef->X - sphereRef->position.X) + rayDirectionRef->Y*(rayOriginRef->Y - sphereRef->position.Y) + rayDirectionRef->Z*(rayOriginRef->Z - sphereRef->position.Z));
+			double C = pow(rayOriginRef->X - sphereRef->position.X, 2) + pow(rayOriginRef->Y - sphereRef->position.Y, 2) + pow(rayOriginRef->Z - sphereRef->position.Z, 2) - pow(sphereRef->radius, 2);
 
 			double discriminant = (pow(B, 2) - 4*C);
 			if (discriminant < 0) {
@@ -139,187 +151,6 @@ int shoot(V3 *Ro, V3 *Rd, Scene *sceneRef, Primitive **primitiveHit) {
 				t = t_possible;
 				*primitiveHit = primitiveRef;
 			}
-		}
-	}
-
-	return 0;
-}
-
-int JSONArray_to_V3(JSONArray *JSONArrayRef, V3 *vector) {
-	JSONValue *JSONValueTempRef;
-
-	if (JSONArrayRef->length != 3){
-		fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-		return 1;
-	}
-
-	int i = 0;
-	for (i = 0; i < 3; i ++) {
-		if (JSONArray_get_value(i, JSONArrayRef, &JSONValueTempRef) != 0) {
-			fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-			return 1;
-		}
-
-		if (JSONValueTempRef->type != NUMBER_T) {
-			fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-			return 1;
-		}
-
-		if (i == 0)
-			vector->X = JSONValueTempRef->data.dataNumber;
-		else if (i == 1)
-			vector->Y = JSONValueTempRef->data.dataNumber;
-		else if (i == 2)
-			vector->Z = JSONValueTempRef->data.dataNumber;
-	}
-
-    return 0;
-}
-
-int create_scene(JSONArray *JSONSceneArrayRef, Scene* SceneRef) {
-	JSONObject *JSONObjectTempRef;
-	JSONValue *JSONValueTempRef;
-	int size = JSONSceneArrayRef->length - 1;
-	SceneRef->primitives = malloc(sizeof(Primitive*) * size);
-	SceneRef->primitivesLength = size;
-
-	int j = 0;
-	for (int i = 0; i < JSONSceneArrayRef->length; i++) {
-		// Look at the objects we loaded in JSON
-		if (JSONSceneArrayRef->values[i]->type == OBJECT_T) {
-			// Everything should have a type
-			JSONObjectTempRef = JSONSceneArrayRef->values[i]->data.dataObject;
-
-			if (JSONObject_get_value("type", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-				fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-				return 1;
-			}
-			if (JSONValueTempRef->type != STRING_T) {
-				fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-				return 1;
-			}
-
-
-			if (strcmp(JSONValueTempRef->data.dataString, "camera") == 0) {
-				// We found a camera
-
-				// Read the height
-				if (JSONObject_get_value("height", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != NUMBER_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				SceneRef->camera.height = JSONValueTempRef->data.dataNumber;
-
-				// Read the width
-
-				if (JSONObject_get_value("width", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != NUMBER_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				SceneRef->camera.width = JSONValueTempRef->data.dataNumber;
-			}
-			else if (strcmp(JSONValueTempRef->data.dataString, "sphere") == 0) {
-				// We found a sphere
-				SceneRef->primitives[j] = malloc(sizeof(Primitive));
-				SceneRef->primitives[j]->type = SPHERE_T;
-
-				// Read the color
-				if (JSONObject_get_value("color", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != ARRAY_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.color);
-
-				// Read the position
-				if (JSONObject_get_value("position", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != ARRAY_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.position);
-
-				// Read the radius
-				if (JSONObject_get_value("radius", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != NUMBER_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				SceneRef->primitives[j]->data.sphere.radius = JSONValueTempRef->data.dataNumber;
-				j++;
-			}
-			else if (strcmp(JSONValueTempRef->data.dataString, "plane") == 0) {
-				// We found a plane
-				SceneRef->primitives[j] = malloc(sizeof(Primitive));
-				SceneRef->primitives[j]->type = PLANE_T;
-
-				// Read the color
-				if (JSONObject_get_value("color", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != ARRAY_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.color);
-
-				// Read the position
-				if (JSONObject_get_value("position", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != ARRAY_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.position);
-
-				// Read the position
-				if (JSONObject_get_value("normal", JSONObjectTempRef, &JSONValueTempRef) != 0) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-				if (JSONValueTempRef->type != ARRAY_T) {
-					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-					return 1;
-				}
-
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.normal);
-				j++;
-			}
-			else {
-				fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-				return 1;
-			}
-		}
-		else {
-			fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
-			return 1;
 		}
 	}
 
