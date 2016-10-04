@@ -4,7 +4,7 @@ SOURCEDIR=src
 HEADERDIR=src
 LDFLAGS=
 OBJDIR=obj
-TARGET=raycaster
+TARGET=raycast
 
 SOURCES=$(wildcard $(SOURCEDIR)/*.c)
 OBJECTS=$(patsubst $(SOURCEDIR)/%,$(OBJDIR)/%,$(SOURCES:%.c=%.o))
