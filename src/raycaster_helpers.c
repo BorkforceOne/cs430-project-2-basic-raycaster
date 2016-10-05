@@ -181,7 +181,36 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.color);
+				if (JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.color) != 0) {
+					return 1;
+				}
+
+				// Make sure that we have no negative colors and all colors are between 0 and 1
+				if (SceneRef->primitives[j]->data.plane.color.X < 0) {
+					fprintf(stderr, "Error: Colors cannot be negative\n");
+					return 1;
+				}
+				if (SceneRef->primitives[j]->data.plane.color.Y < 0) {
+					fprintf(stderr, "Error: Colors cannot be negative\n");
+					return 1;
+				}
+				if (SceneRef->primitives[j]->data.plane.color.Z < 0) {
+					fprintf(stderr, "Error: Colors cannot be negative\n");
+					return 1;
+				}
+
+				if (SceneRef->primitives[j]->data.plane.color.X > 1) {
+					fprintf(stderr, "Error: Colors cannot be greater than 1\n");
+					return 1;
+				}
+				if (SceneRef->primitives[j]->data.plane.color.Y > 1) {
+					fprintf(stderr, "Error: Colors cannot be greater than 1\n");
+					return 1;
+				}
+				if (SceneRef->primitives[j]->data.plane.color.Z > 1) {
+					fprintf(stderr, "Error: Colors cannot be greater than 1\n");
+					return 1;
+				}
 
 				// Read the position
 				if (JSONObject_get_value("position", JSONObjectTempRef, &JSONValueTempRef) != 0) {
