@@ -97,7 +97,10 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
 					return 1;
 				}
-
+				if (JSONValueTempRef->data.dataNumber < 0) {
+					fprintf(stderr, "Error: Negative camera height is not allowed\n");
+					return 1;
+				}
 				SceneRef->camera.height = JSONValueTempRef->data.dataNumber;
 
 				// Read the width
@@ -108,6 +111,10 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 				}
 				if (JSONValueTempRef->type != NUMBER_T) {
 					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
+					return 1;
+				}
+				if (JSONValueTempRef->data.dataNumber < 0) {
+					fprintf(stderr, "Error: Negative camera width is not allowed\n");
 					return 1;
 				}
 
