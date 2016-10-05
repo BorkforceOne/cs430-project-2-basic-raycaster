@@ -135,7 +135,9 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.color);
+				if (JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.color) != 0) {
+					return 1;
+				}
 
 				// Read the position
 				if (JSONObject_get_value("position", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -147,7 +149,9 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.position);
+				if (JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.sphere.position) != 0) {
+					return 1;
+				}
 
 				// Read the radius
 				if (JSONObject_get_value("radius", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -222,7 +226,9 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.position);
+				if (JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.position) != 0) {
+					return 1;
+				}
 
 				// Read the position
 				if (JSONObject_get_value("normal", JSONObjectTempRef, &JSONValueTempRef) != 0) {
@@ -234,7 +240,10 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					return 1;
 				}
 
-				JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.normal);
+				if (JSONArray_to_V3(JSONValueTempRef->data.dataArray, &SceneRef->primitives[j]->data.plane.normal) != 0) {
+					return 1;
+				}
+
 				j++;
 			}
 			else {
