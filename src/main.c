@@ -42,8 +42,9 @@ void show_help() {
  */
 int main (int argc, char *argv[]) {
 	if (argc != 5) {
+        fprintf(stderr, "Error: Not enough arguments provided\n");
 		show_help();
-		return 0;
+		return 1;
 	}
 
 	int imageWidth = atoi(argv[1]);
@@ -52,13 +53,15 @@ int main (int argc, char *argv[]) {
 	char *outputFname = argv[4];
 
 	if (!isinteger(argv[1]) || imageHeight <= 0) {
-		show_help();
-		return 0;
+        fprintf(stderr, "Error: Argument render_height must be an positive integer\n");
+        show_help();
+		return 1;
 	}
 
 	if (!isinteger(argv[2]) || imageWidth <= 0) {
+        fprintf(stderr, "Error: Argument render_width must be an positive integer\n");
 		show_help();
-		return 0;
+		return 1;
 	}
 
 	// Read the input JSON file
