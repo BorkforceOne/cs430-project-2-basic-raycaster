@@ -158,6 +158,10 @@ int create_scene_from_JSON(JSONValue *JSONValueSceneRef, Scene* SceneRef) {
 					fprintf(stderr, "Error: Input scene JSON file contains invalid entries\n");
 					return 1;
 				}
+				if (JSONValueTempRef->data.dataNumber < 0) {
+					fprintf(stderr, "Error: Negative sphere radius is not allowed\n");
+					return 1;
+				}
 
 				SceneRef->primitives[j]->data.sphere.radius = JSONValueTempRef->data.dataNumber;
 				j++;
